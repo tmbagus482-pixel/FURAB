@@ -1,0 +1,7 @@
+{
+  "name": "FURAB Kota Bogor",
+  "description": "Website resmi komunitas fanbase Fuji Arab Couple Fans Bogor. Wadah bagi penggemar Fujianti Utami Putri dan Thariq Halilintar untuk berkumpul, berbagi kegiatan, dan menjalin kebersamaan.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

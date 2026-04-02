@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, displayName, email, photoURL, role, bio, joinedAt
+    //
+    // Collection: events
+    // Fields: id, title, description, date, location, type, imageUrl, createdAt
+    //
+    // Collection: gallery
+    // Fields: id, title, imageUrl, videoUrl, type, uploadedBy, createdAt
+    //
+    // Collection: news
+    // Fields: id, title, content, authorId, imageUrl, createdAt
+    //
+    // Collection: comments
+    // Fields: id, targetId, userId, userName, content, createdAt
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "tmbagus482@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'role', 'joinedAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.role in ['admin', 'member'] &&
+             data.joinedAt is string;
+    }
+
+    function isValidEvent(data) {
+      return data.keys().hasAll(['id', 'title', 'description', 'date', 'location', 'type', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.type in ['kopdar', 'nobar', 'charity'];
+    }
+
+    function isValidGalleryItem(data) {
+      return data.keys().hasAll(['id', 'title', 'imageUrl', 'type', 'uploadedBy', 'createdAt']) &&
+             data.type in ['photo', 'video'];
+    }
+
+    function isValidNews(data) {
+      return data.keys().hasAll(['id', 'title', 'content', 'authorId', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200;
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['id', 'targetId', 'userId', 'userName', 'content', 'createdAt']) &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000 &&
+             data.userId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) && request.resource.data.role == 'member' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) && request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidEvent(request.resource.data);
+    }
+
+    match /gallery/{itemId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidGalleryItem(request.resource.data);
+    }
+
+    match /news/{articleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidNews(request.resource.data);
+    }
+
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidComment(request.resource.data);
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "member"] },
+        "bio": { "type": "string" },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email", "role", "joinedAt"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Community event information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "string" },
+        "type": { "type": "string", "enum": ["kopdar", "nobar", "charity"] },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description", "date", "location", "type", "createdAt"]
+    },
+    "GalleryItem": {
+      "title": "Gallery Item",
+      "description": "Photo or video from community activities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["photo", "video"] },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "imageUrl", "type", "uploadedBy", "createdAt"]
+    },
+    "NewsArticle": {
+      "title": "News Article",
+      "description": "News and updates about Fuji, Arab, and the community",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "content", "authorId", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User comment on events or news",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "targetId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "targetId", "userId", "userName", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Community events"
+    },
+    "/gallery/{itemId}": {
+      "schema": "GalleryItem",
+      "description": "Gallery items"
+    },
+    "/news/{articleId}": {
+      "schema": "NewsArticle",
+      "description": "News articles"
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "User comments"
+    }
+  }
+}
